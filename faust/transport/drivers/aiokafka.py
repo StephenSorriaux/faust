@@ -593,12 +593,16 @@ class Producer(base.Producer):
         return self._producer
 
     async def on_start(self) -> None:
+        """Call when producer starts."""
+        await super().on_start()
         producer = self._producer = self._new_producer()
         self.beacon.add(producer)
         self._last_batch = None
         await producer.start()
 
     async def on_stop(self) -> None:
+        """Call when producer stops."""
+        await super().on_stop()
         cast(Transport, self.transport)._topic_waiters.clear()
         self._last_batch = None
         producer, self._producer = self._producer, None
