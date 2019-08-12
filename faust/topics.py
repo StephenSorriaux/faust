@@ -471,6 +471,17 @@ class Topic(Channel, TopicT):
         except Exception as exc:
             message.set_exception(exc)
             self.app.sensors.on_send_error(producer, exc, state)
+            if message.message.callback:
+                message.message.callback(message)
+            else:
+                self.app.logger.error(
+                    'Encountered an error: %s, while producing to channel/topic %r '
+                    'for message key %.128s... and value %.128s...',
+                    message.exception(),
+                    message.message.channel,
+                    message.message.key,
+                    message.message.value
+                )
         else:
             message.set_result(res)
             if message.message.callback:
