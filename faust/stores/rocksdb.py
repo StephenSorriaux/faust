@@ -43,6 +43,7 @@ DEFAULT_TARGET_FILE_SIZE_BASE = 67108864
 DEFAULT_BLOCK_CACHE_SIZE = 16 * 1024 ** 2
 DEFAULT_BLOCK_CACHE_COMPRESSED_SIZE = 4 * 1024 ** 2
 DEFAULT_BLOOM_FILTER_SIZE = 3
+DEFAULT_LOG_FILE_NUM = 5
 
 try:  # pragma: no cover
     import rocksdb
@@ -81,6 +82,7 @@ class RocksDBOptions:
     block_cache_size: int = DEFAULT_BLOCK_CACHE_SIZE
     block_cache_compressed_size: int = DEFAULT_BLOCK_CACHE_COMPRESSED_SIZE
     bloom_filter_size: int = DEFAULT_BLOOM_FILTER_SIZE
+    log_file_num: int = DEFAULT_LOG_FILE_NUM
     extra_options: Mapping
 
     def __init__(self,
@@ -120,6 +122,7 @@ class RocksDBOptions:
             write_buffer_size=self.write_buffer_size,
             max_write_buffer_number=self.max_write_buffer_number,
             target_file_size_base=self.target_file_size_base,
+            keep_log_file_num=self.log_file_num,
             table_factory=rocksdb.BlockBasedTableFactory(
                 filter_policy=rocksdb.BloomFilterPolicy(
                     self.bloom_filter_size),
