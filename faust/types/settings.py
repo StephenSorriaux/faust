@@ -257,6 +257,9 @@ PRODUCER_COMPRESSION_TYPE: Optional[str] = None
 #: up sending message batches.
 PRODUCER_REQUEST_TIMEOUT: float = 1200.0  # 20 minutes.
 
+#: Producer max size buffer (number of messages)
+PRODUCER_MAX_SIZE_BUFFER: int = 100
+
 #: The number of acknowledgments the producer requires the leader to have
 #: received before considering a request complete. This controls the
 #: durability of records that are sent. The following settings are common:
@@ -327,6 +330,7 @@ class Settings(abc.ABC):
     producer_max_batch_size: int = PRODUCER_MAX_BATCH_SIZE
     producer_acks: int = PRODUCER_ACKS
     producer_max_request_size: int = PRODUCER_MAX_REQUEST_SIZE
+    producer_max_size_buffer: int = PRODUCER_MAX_SIZE_BUFFER
     producer_api_version: str = 'auto'
     consumer_max_fetch_size: int = CONSUMER_MAX_FETCH_SIZE
     consumer_auto_offset_reset: str = CONSUMER_AUTO_OFFSET_RESET
@@ -474,6 +478,7 @@ class Settings(abc.ABC):
             producer_compression_type: str = None,
             producer_partitioner: SymbolArg[PartitionerT] = None,
             producer_request_timeout: Seconds = None,
+            producer_max_size_buffer: int = None,
             producer_api_version: str = None,
             consumer_max_fetch_size: int = None,
             consumer_auto_offset_reset: str = None,
@@ -610,6 +615,8 @@ class Settings(abc.ABC):
             self.producer_partitioner = producer_partitioner
         if producer_request_timeout is not None:
             self.producer_request_timeout = producer_request_timeout
+        if producer_max_size_buffer is not None:
+            self.producer_max_size_buffer = producer_max_size_buffer
         if producer_api_version is not None:
             self.producer_api_version = producer_api_version
         if consumer_max_fetch_size is not None:

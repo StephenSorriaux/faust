@@ -10,6 +10,7 @@ import asyncio
 from asyncio import QueueEmpty
 from typing import Any, Awaitable, Mapping, Optional, cast
 from mode import Seconds, Service
+from mode.utils.types.trees import NodeT
 from faust.types import AppT, HeadersArg
 from faust.types.tuples import FutureMessage, RecordMetadata, TP
 from faust.types.transports import ProducerT, TransportT
@@ -19,9 +20,18 @@ __all__ = ['Producer']
 
 class ProducerBuffer(Service):
 
-    max_messages: int = 100
-
+    max_messages: int
+    app: AppT
     pending: asyncio.Queue
+
+    def __init__(self, app, *,
+                 beacon: NodeT = None,
+                 loop: asyncio.AbstractEventLoop = None,
+                 **kwargs: Any) -> None:
+        self.app = app
+        conf = self.app.conf
+        self.max_messages = conf.producer_max_size_buffer
+        super().__init__(loop=loop, beacon=beacon, **kwargs)
 
     def __post_init__(self) -> None:
         self.pending = asyncio.Queue()
@@ -128,7 +138,7 @@ class Producer(Service, ProducerT):
         assert api_version is not None
         super().__init__(loop=loop or self.transport.loop, **kwargs)
 
-        self.buffer = ProducerBuffer(loop=self.loop, beacon=self.beacon)
+        self.buffer = ProducerBuffer(self.app, loop=self.loop, beacon=self.beacon)
 
     async def on_start(self) -> None:
         await self.add_runtime_dependency(self.buffer)
