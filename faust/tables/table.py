@@ -1,7 +1,8 @@
 """Table (key/value changelog stream)."""
+import time
 from typing import Any, ClassVar, Type
 
-from mode import Seconds
+from mode import Seconds, get_logger
 
 from faust import windows
 from faust.streams import current_event
@@ -11,6 +12,9 @@ from faust.utils.terminal.tables import dict_as_ansitable
 
 from . import wrappers
 from .base import Collection
+
+logger = get_logger(__name__)
+
 
 __all__ = ['Table']
 
@@ -70,6 +74,7 @@ class Table(TableT[KT, VT], Collection):
 
     def on_key_set(self, key: KT, value: VT) -> None:
         """Call when the value for a key in this table is set."""
+        start = time.time()
         event = current_event()
         if event is None:
             raise TypeError(
@@ -78,6 +83,7 @@ class Table(TableT[KT, VT], Collection):
         partition = event.message.partition
         self._maybe_set_key_ttl(key, partition)
         self._sensor_on_set(self, key, value)
+        logger.info('on_key_set took %ss', time.time() - start)
 
     def on_key_del(self, key: KT) -> None:
         """Call when a key in this table is removed."""
