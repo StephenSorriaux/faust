@@ -2,6 +2,7 @@
 import asyncio
 
 from collections import deque
+import math
 from statistics import median
 from time import monotonic
 from typing import (
@@ -79,6 +80,10 @@ class TableState(KeywordReduce):
         return {**self.asdict(), 'table': self.table}
 
 
+def percentile(data, percentile):
+    size = len(data)
+    return sorted(data)[int(math.ceil((size * percentile) / 100)) - 1]
+
 class Monitor(Sensor, KeywordReduce):
     """Default Faust Sensor.
 
@@ -137,6 +142,12 @@ class Monitor(Sensor, KeywordReduce):
 
     #: Average event runtime over the last second.
     events_runtime_avg: float = 0.0
+    #: Average event runtime over the last second.
+    events_runtime_var: float = 0.0
+    #: Average event runtime over the last second.
+    events_runtime_p90: float = 0.0
+    #: Average event runtime over the last second.
+    events_runtime_max: float = 0.0
 
     #: Deque of run times used for averages
     events_runtime: Deque[float] = cast(Deque[float], None)
@@ -298,6 +309,8 @@ class Monitor(Sensor, KeywordReduce):
         # Update average event runtime.
         if self.events_runtime:
             self.events_runtime_avg = median(self.events_runtime)
+            self.events_runtime_p90 = percentile(self.events_runtime, 90)
+            self.events_runtime_max = max(self.events_runtime)
 
         # Update events/s
         self.events_s, prev_event_total = (
@@ -331,6 +344,8 @@ class Monitor(Sensor, KeywordReduce):
             'events_total': self.events_total,
             'events_s': self.events_s,
             'events_runtime_avg': self.events_runtime_avg,
+            'events_runtime_p90': self.events_runtime_p90,
+            'events_runtime_max': self.events_runtime_max,
             'events_by_task': self._events_by_task_dict(),
             'events_by_stream': self._events_by_stream_dict(),
             'commit_latency': self.commit_latency,
